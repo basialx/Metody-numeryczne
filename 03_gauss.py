@@ -1,30 +1,35 @@
-import sys
+
 import numpy as np
 
-def gauss_elimination(A, b, n):
-    n = A.shape[0]
-    Ab = np.concatenate((A, b.reshape(n, 1)), axis=1, dtype=float)
-    for i in range(n):
-        # Częściowe pivoting
-        max_row = i
+
+def gauss(a,b, n):
+    x = np.zeros(n, float)
+    for k in range(n - 1):
+        if np.fabs(a[k, k]) < 1.0e-12:
+
+            for i in range(k + 1, n):
+                if np.fabs(a[i, k]) > np.fabs(a[k, k]):
+                    a[[k, i]] = a[[i, k]]
+                    b[[k, i]] = b[[i, k]]
+                    break
+
+        for i in range(k + 1, n):
+            if a[i, k] == 0: continue
+
+            factor = a[k, k] / a[i, k]
+            for j in range(k, n):
+                a[i, j] = a[k, j] - a[i, j] * factor
+            b[i] = b[k] - b[i] * factor
+
+    x[n - 1] = b[n - 1] / a[n - 1, n - 1]
+    for i in range(n - 2, -1, -1):
+        sum_ax = 0
+
         for j in range(i + 1, n):
-            if abs(Ab[j, i]) > abs(Ab[max_row, i]):
-                max_row = j
-        Ab[[i, max_row]] = Ab[[max_row, i]]
-        # Eliminacja Gaussa
-        if Ab[i, i] == 0:
-            raise ValueError("Macierz jest źle uwarunkowana lub jedno z równań jest liniowo zależne.")
-        for j in range(i + 1, n):
-            if Ab[j, i] == 0:
-                continue
-            factor = Ab[j, i] / Ab[i, i]
-            Ab[j, :] -= factor * Ab[i, :]
-    # Wyliczenie wektora niewiadomych
-    x = np.zeros(n)
-    for i in range(n - 1, -1, -1):
-        if Ab[i, i] == 0:
-            raise ValueError("Macierz jest źle uwarunkowana lub jedno z równań jest liniowo zależne.")
-        x[i] = (Ab[i, n] - np.dot(Ab[i, :i], x[:i])) / Ab[i, i]
+            sum_ax += a[i, j] * x[j]
+
+        x[i] = (b[i] - sum_ax) / a[i, i]
+
     return x
 
 def extract(list):
@@ -77,30 +82,28 @@ if __name__ == '__main__':
     text.close()
 
 
-    print('Matrix A: ')
+    print('\n\nMatrix A: ')
     try:
-        x = gauss_elimination(a1, b1, int(n1))
+        x = gauss(a1, b1, int(n1))
     except ValueError:
-        print("Macierz jest źle uwarunkowana lub jedno lub więcej równań w układzie jest liniowo zależnych.")
+        print("\nMacierz jest źle uwarunkowana lub jedno lub więcej równań w układzie jest liniowo zależnych.")
     else:
-        print("Wynik:", x)
-
-
-
-    print('Matrix B: ')
+        print("\nWynik:", x)
+        print("Sprawdzenie A*x: ", np.dot(a1,x))
+        
+    print('\n\nMatrix B: ')
     try:
-        x = gauss_elimination(a2, b2, int(n2))
+        x = gauss(a2, b2, int(n2))
     except ValueError:
-        print("Macierz jest źle uwarunkowana lub jedno lub więcej równań w układzie jest liniowo zależnych.")
+        print("\nMacierz jest źle uwarunkowana lub jedno lub więcej równań w układzie jest liniowo zależnych.")
     else:
-        print("Wynik:", x)
+        print("\nWynik:", x)
 
-
-
-    print('Matrix C: ')
+    print('\n\nMatrix C: ')
     try:
-        x = gauss_elimination(a3, b3, int(n3))
+        x = gauss(a3, b3, int(n3))
     except ValueError:
-        print("Macierz jest źle uwarunkowana lub jedno lub więcej równań w układzie jest liniowo zależnych.")
+        print("\nMacierz jest źle uwarunkowana lub jedno lub więcej równań w układzie jest liniowo zależnych.")
     else:
-        print("Wynik:", x)
+        print("\nWynik:", x)
+        print("Sprawdzenie: ", np.round(np.dot(a3, x)))
